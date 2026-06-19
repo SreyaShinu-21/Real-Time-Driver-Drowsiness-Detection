@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeDrive Monitor - Real-Time Driver Drowsiness Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-icon">🚗</div>
+                <h1 class="logo-text">SafeDrive Monitor</h1>
+            </div>
+            <p class="tagline">Advanced AI-Powered Driver Safety System</p>
+        </div>
+        <div class="header-wave"></div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+        <!-- Video Section -->
+        <div class="video-section">
+            <div class="video-header">
+                <h2>Live Camera Feed</h2>
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Ready</span>
+                </div>
+            </div>
+            <div class="video-box">
+                <div class="video-wrapper">
+                    <img src="{{ url_for('video') }}" alt="Live Camera Feed" id="video-feed">
+                    <div class="video-overlay">
+                        <div class="overlay-content">
+                            <div class="pulse-ring"></div>
+                            <p>Camera Feed Active</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="panel-header">
+                <h2>Control Panel</h2>
+                <div class="panel-icon">⚙️</div>
+            </div>
+
+            <div class="button-group">
+                <a href="/start" class="btn-link">
+                    <button class="btn btn-start">
+                        <span class="btn-icon">▶</span>
+                        <span class="btn-text">Start Detection</span>
+                        <div class="btn-shine"></div>
+                    </button>
+                </a>
+
+                <a href="/stop" class="btn-link">
+                    <button class="btn btn-stop">
+                        <span class="btn-icon">⏹</span>
+                        <span class="btn-text">Stop Detection</span>
+                        <div class="btn-shine"></div>
+                    </button>
+                </a>
+            </div>
+
+            <!-- Info Cards -->
+            <div class="info-section">
+                <div class="info-card">
+                    <div class="info-icon">📊</div>
+                    <div class="info-content">
+                        <h3>Status</h3>
+                        <p>Real-time monitoring displayed on live video feed</p>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">🔔</div>
+                    <div class="info-content">
+                        <h3>Alert System</h3>
+                        <p>Automatic sound alarm triggers on drowsiness detection</p>
+                    </div>
+                </div>
+
+        <div class="info">
+            <p><b>Status:</b> Displayed on live video</p>
+            <p><b>Alert:</b> Sound alarm on drowsiness</p>
+        </div>
+    </div>
+</div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p class="footer-text">Final Year Major Project</p>
+            <p class="footer-tech">Developed using MediaPipe & Flask</p>
+            <div class="footer-decoration"></div>
+        </div>
+    </footer>
+
+    <script>
+        // Add dynamic status updates
+        const videoFeed = document.getElementById('video-feed');
+        const statusDot = document.querySelector('.status-dot');
+        const statusText = document.querySelector('.status-text');
+        
+        videoFeed.addEventListener('load', function() {
+            statusDot.classList.add('active');
+            statusText.textContent = 'Active';
+        });
+        
+        videoFeed.addEventListener('error', function() {
+            statusDot.classList.remove('active');
+            statusText.textContent = 'Inactive';
+        });
+    </script>
+</body>
+</html>

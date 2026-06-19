@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAFEDRIVE DRIVER MONITORING SYSTEM V2.1</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="system-title">
+                <h1>SAFEDRIVE DRIVER MONITORING SYSTEM V2.1</h1>
+            </div>
+            <div class="clock" id="clock">22:18:00</div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <!-- System Status -->
+                <section class="status-section">
+                    <h2 class="section-title">SYSTEM STATUS</h2>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <span class="status-label">DETECTION:</span>
+                            <span class="status-value status-idle" id="detection-status">IDLE</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">CAMERA:</span>
+                            <span class="status-value status-connected" id="camera-status">CONNECTED</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">ALERT SYS:</span>
+                            <span class="status-value status-armed" id="alert-status">ARMED</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">AI ENGINE:</span>
+                            <span class="status-value status-nominal" id="ai-status">NOMINAL</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Accuracy Display -->
+                <section class="accuracy-section">
+                    <h2 class="section-title">SYSTEM ACCURACY</h2>
+                    <div class="accuracy-container">
+                        <div class="accuracy-value">
+                            <span class="accuracy-number" id="accuracy-value">95%</span>
+                            <span class="accuracy-label">DETECTION ACCURACY</span>
+                        </div>
+                        <div class="accuracy-details">
+                            <div class="accuracy-item">
+                                <span class="accuracy-detail-label">False Positive:</span>
+                                <span class="accuracy-detail-value" id="false-positive">3%</span>
+                            </div>
+                            <div class="accuracy-item">
+                                <span class="accuracy-detail-label">False Negative:</span>
+                                <span class="accuracy-detail-value" id="false-negative">5%</span>
+                            </div>
+                            <div class="accuracy-item">
+                                <span class="accuracy-detail-label">Response Time:</span>
+                                <span class="accuracy-detail-value" id="response-time">3.0s</span>
+                            </div>
+                            <div class="accuracy-item">
+                                <span class="accuracy-detail-label">EAR Threshold:</span>
+                                <span class="accuracy-detail-value" id="ear-threshold">0.18</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Live Camera Feed -->
+                <section class="camera-section">
+                    <h2 class="section-title">LIVE CAMERA FEED</h2>
+                    <div class="camera-container">
+                        <div class="camera-feed">
+                            <img src="{{ url_for('video') }}" alt="Live Camera Feed" id="video-feed">
+                            <div class="camera-overlay">
+                                <div class="ear-display" id="ear-overlay">EAR: 0.31</div>
+                                <div class="status-display" id="status-overlay">STATUS: AWAKE</div>
+                            </div>
+                            <div class="camera-error" id="camera-error">
+                                <div class="error-icon">⚠️</div>
+                                <p>Unable to access camera</p>
+                                <p>Please ensure camera permissions are granted</p>
+                            </div>
+                        </div>
+                        <div class="stream-label">VISUAL ANALYSIS STREAM</div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <!-- EAR Gauge -->
+                <section class="ear-section">
+                    <h2 class="section-title">EYE ASPECT RATIO (EAR)</h2>
+                    <div class="gauge-container">
+                        <div class="gauge">
+                            <div class="gauge-circle">
+                                <div class="gauge-fill" id="gauge-fill"></div>
+                                <div class="gauge-center">
+                                    <div class="ear-value" id="ear-value">0.40</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Control Interface -->
+                <section class="control-section">
+                    <h2 class="section-title">CONTROL INTERFACE</h2>
+                    <div class="control-buttons">
+                        <a href="/start" class="control-btn start-btn">
+                            <div class="btn-icon">▶</div>
+                            <div class="btn-text">ENGAGE DETECTION</div>
+                        </a>
+                        <a href="/stop" class="control-btn stop-btn">
+                            <div class="btn-icon">⏸</div>
+                            <div class="btn-text">HALT DETECTION</div>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- Event Log -->
+                <section class="event-log-section">
+                    <h2 class="section-title">EVENT LOG</h2>
+                    <div class="event-log-content" id="event-log-content">
+                        <!-- Event logs will be appended here by JavaScript -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Clock update
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Video feed status
+        const videoFeed = document.getElementById('video-feed');
+        const cameraError = document.getElementById('camera-error');
+        const detectionStatus = document.getElementById('detection-status');
+        const cameraStatus = document.getElementById('camera-status');
+        const alertStatus = document.getElementById('alert-status');
+        const aiStatus = document.getElementById('ai-status');
+        const earOverlay = document.getElementById('ear-overlay');
+        const statusOverlay = document.getElementById('status-overlay');
+
+        videoFeed.addEventListener('load', function() {
+            cameraError.style.display = 'none';
+            cameraStatus.textContent = 'CONNECTED';
+            cameraStatus.className = 'status-value status-connected';
+        });
+
+        videoFeed.addEventListener('error', function() {
+            cameraError.style.display = 'flex';
+            cameraStatus.textContent = 'DISCONNECTED';
+            cameraStatus.className = 'status-value status-disconnected';
+        });
+
+        // Check detection status periodically
+        function updateDetectionStatus() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    // Update camera status
+                    if (data.camera_connected) {
+                        cameraStatus.textContent = 'CONNECTED';
+                        cameraStatus.className = 'status-value status-connected';
+                        cameraError.style.display = 'none';
+                    } else {
+                        cameraStatus.textContent = 'DISCONNECTED';
+                        cameraStatus.className = 'status-value status-disconnected';
+                        cameraError.style.display = 'flex';
+                    }
+                    
+                    if (data.detection_active) {
+                        detectionStatus.textContent = 'ACTIVE';
+                        detectionStatus.className = 'status-value status-active';
+                        statusOverlay.textContent = 'STATUS: ACTIVE';
+                        statusOverlay.style.backgroundColor = '#00ff41';
+                        statusOverlay.style.color = '#000';
+                    } else {
+                        detectionStatus.textContent = 'IDLE';
+                        detectionStatus.className = 'status-value status-idle';
+                        statusOverlay.textContent = 'STATUS: IDLE';
+                        statusOverlay.style.backgroundColor = '#ffa500';
+                        statusOverlay.style.color = '#000';
+                    }
+                    
+                    // Update EAR value if available
+                    if (data.ear) {
+                        document.getElementById('ear-value').textContent = data.ear.toFixed(2);
+                        earOverlay.textContent = `EAR: ${data.ear.toFixed(2)}`;
+                        updateGauge(data.ear);
+                        
+                        // When detection is idle, show AWAKE status in overlay (not DROWSY)
+                        // The video feed will show the correct status
+                        if (!data.detection_active) {
+                            // Keep the overlay as IDLE since detection is halted
+                            statusOverlay.textContent = 'STATUS: IDLE';
+                            statusOverlay.style.backgroundColor = '#ffa500';
+                            statusOverlay.style.color = '#000';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.log('Status check failed:', error);
+                });
+        }
+
+        // Update gauge visualization
+        function updateGauge(ear) {
+            const gaugeFill = document.getElementById('gauge-fill');
+            const percentage = Math.min(Math.max(ear * 100, 0), 100);
+            gaugeFill.style.background = `conic-gradient(#00ff41 0deg ${percentage * 3.6}deg, #1a2a4a ${percentage * 3.6}deg)`;
+        }
+
+        // Event logging functionality
+        function addEventLog(message, type = 'info') {
+            const eventLog = document.getElementById('event-log-content');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const eventEntry = document.createElement('div');
+            eventEntry.className = 'event-log-entry';
+            
+            let eventClass = '';
+            if (type === 'warning') {
+                eventClass = 'event-type-warning';
+            } else if (type === 'error') {
+                eventClass = 'event-type-error';
+            } else if (type === 'success') {
+                eventClass = 'event-type-success';
+            }
+            
+            eventEntry.innerHTML = `
+                <span class="event-time">${timestamp}</span>
+                <span class="event-message ${eventClass}">${message}</span>
+            `;
+            
+            eventLog.appendChild(eventEntry);
+            eventLog.scrollTop = eventLog.scrollHeight;
+            
+            // Keep only last 50 events
+            while (eventLog.children.length > 50) {
+                eventLog.removeChild(eventLog.firstChild);
+            }
+        }
+
+        // Fetch event log updates
+        function updateEventLog() {
+            fetch('/events')
+                .then(response => response.json())
+                .then(data => {
+                    const eventLog = document.getElementById('event-log-content');
+                    const currentEvents = eventLog.children;
+                    
+                    // Clear current log and rebuild
+                    eventLog.innerHTML = '';
+                    
+                    // Add all events
+                    if (data.events && data.events.length > 0) {
+                        data.events.forEach(event => {
+                            const eventEntry = document.createElement('div');
+                            eventEntry.className = 'event-log-entry';
+                            
+                            let eventClass = '';
+                            if (event.type === 'warning') {
+                                eventClass = 'event-type-warning';
+                            } else if (event.type === 'error') {
+                                eventClass = 'event-type-error';
+                            } else if (event.type === 'success') {
+                                eventClass = 'event-type-success';
+                            }
+                            
+                            eventEntry.innerHTML = `
+                                <span class="event-time">${event.time}</span>
+                                <span class="event-message ${eventClass}">${event.message}</span>
+                            `;
+                            
+                            eventLog.appendChild(eventEntry);
+                        });
+                        
+                        // Auto-scroll to bottom
+                        eventLog.scrollTop = eventLog.scrollHeight;
+                    }
+                })
+                .catch(error => {
+                    console.error('Event log update failed:', error);
+                });
+        }
+
+        // Update status every 500ms
+        setInterval(updateDetectionStatus, 500);
+        setInterval(updateEventLog, 2000);  // Update event log every 2 seconds
+        updateDetectionStatus();
+        updateEventLog();  // Initial event log population
+    </script>
+</body>
+</html>
